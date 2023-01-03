@@ -5,7 +5,7 @@ static_resources:
     address:
       socket_address:
         address: 0.0.0.0
-        port_value: 10000
+        port_value: 80
     filter_chains:
     - filters:
       - name: envoy.filters.network.http_connection_manager
@@ -16,6 +16,18 @@ static_resources:
           - name: envoy.access_loggers.stdout
             typed_config:
               "@type": type.googleapis.com/envoy.extensions.access_loggers.stream.v3.StdoutAccessLog
+              log_format:
+                json_format:
+                  method: "%REQ(:METHOD)%"
+                  start_time: "%START_TIME%"
+                  path: "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%"
+                  protocol: "%PROTOCOL%"
+                  response_code: "%RESPONSE_CODE%"
+                  response_flag: "%RESPONSE_FLAGS%"
+                  duration: "%DURATION%"
+                  upstream_host: "%UPSTREAM_HOST%"
+                  user_agent: "%REQ(USER-AGENT)%"
+                  x-request-id: "%REQ(X-REQUEST-ID)%"
           http_filters:
           - name: envoy.filters.http.router
             typed_config:
@@ -38,7 +50,7 @@ static_resources:
                   cluster: cluster1
   clusters:
   - name: cluster1
-    # connect_timeout: 0.1s
+    connect_timeout: 1s
     type: strict_dns
     dns_lookup_family: V4_ONLY
     load_assignment:
